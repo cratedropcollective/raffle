@@ -1,280 +1,286 @@
 
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: var(--font-sans); }
-.container { display: grid; grid-template-columns: 1fr 340px; gap: 20px; padding: 16px; min-height: 600px; }
-.left-panel { display: flex; flex-direction: column; gap: 16px; }
-.right-panel { display: flex; flex-direction: column; gap: 16px; }
-.card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 16px; }
-.section-title { font-size: 13px; font-weight: 500; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px; }
-.input-row { display: flex; gap: 8px; }
-.input-row input { flex: 1; }
-.input-row input[type="number"] { width: 70px; flex: none; }
-.wheel-wrap { display: flex; justify-content: center; align-items: center; position: relative; }
-canvas#wheel { border-radius: 50%; }
-.spin-btn { display: block; width: 100%; padding: 10px; font-size: 15px; font-weight: 500; background: var(--color-background-primary); border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); cursor: pointer; color: var(--color-text-primary); transition: background 0.15s; }
-.spin-btn:hover { background: var(--color-background-secondary); }
-.spin-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-.entries-list { max-height: 180px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
-.entry-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; background: var(--color-background-secondary); border-radius: var(--border-radius-md); font-size: 13px; }
-.entry-name { font-weight: 500; color: var(--color-text-primary); }
-.entry-count { color: var(--color-text-secondary); font-size: 12px; }
-.entry-remove { background: none; border: none; cursor: pointer; color: var(--color-text-secondary); padding: 2px 4px; border-radius: 4px; font-size: 14px; }
-.entry-remove:hover { color: var(--color-text-danger); background: var(--color-background-danger); }
-.winner-banner { display: none; padding: 14px; background: var(--color-background-success); border: 0.5px solid var(--color-border-success); border-radius: var(--border-radius-md); text-align: center; }
-.winner-name { font-size: 18px; font-weight: 500; color: var(--color-text-success); }
-.winner-label { font-size: 12px; color: var(--color-text-success); margin-bottom: 4px; }
-.remove-winner-btn { margin-top: 10px; font-size: 12px; padding: 6px 12px; background: var(--color-background-primary); border: 0.5px solid var(--color-border-success); border-radius: var(--border-radius-md); cursor: pointer; color: var(--color-text-success); }
-.remove-winner-btn:hover { background: var(--color-background-secondary); }
-.log-list { max-height: 220px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
-.log-item { display: flex; justify-content: space-between; align-items: flex-start; padding: 8px 10px; background: var(--color-background-secondary); border-radius: var(--border-radius-md); font-size: 12px; }
-.log-winner { font-weight: 500; color: var(--color-text-primary); }
-.log-meta { color: var(--color-text-secondary); font-size: 11px; text-align: right; }
-.log-num { display: inline-block; width: 18px; height: 18px; border-radius: 50%; background: var(--color-background-info); color: var(--color-text-info); font-size: 10px; font-weight: 500; text-align: center; line-height: 18px; margin-right: 6px; }
-.empty-state { color: var(--color-text-secondary); font-size: 13px; text-align: center; padding: 16px 0; }
-.pointer { position: absolute; right: -8px; top: 50%; transform: translateY(-50%); width: 0; height: 0; border-top: 10px solid transparent; border-bottom: 10px solid transparent; border-right: 20px solid var(--color-text-primary); z-index: 10; }
-.total-tickets { font-size: 12px; color: var(--color-text-secondary); margin-top: 4px; }
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#0D0F1A;--navy2:#1E2235;--navy3:#252A40;
+  --gold:#F5C842;--gold2:#C9A028;--gold-glow:rgba(245,200,66,0.18);
+  --cream:#F0EDE6;--cream2:#B8B4AE;--coral:#E8624A;
+  --green:#3DBF8A;--white:#FFFFFF;
+  --r:12px;--r2:8px;
+}
+.app{display:grid;grid-template-columns:1fr 320px;min-height:580px;background:var(--navy);font-family:'Inter',sans-serif;border-radius:16px;overflow:hidden;}
+.stage{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;background:var(--navy);position:relative;gap:20px;}
+.stage::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 60% at 50% 50%,rgba(245,200,66,0.06) 0%,transparent 70%);pointer-events:none;}
+.wordmark{font-family:'Playfair Display',serif;font-size:11px;letter-spacing:0.3em;color:var(--gold);text-transform:uppercase;opacity:0.8;margin-bottom:-8px;}
+.wheel-container{position:relative;display:flex;align-items:center;justify-content:center;}
+.wheel-glow{position:absolute;inset:-20px;border-radius:50%;background:radial-gradient(ellipse,var(--gold-glow) 0%,transparent 70%);pointer-events:none;opacity:0;transition:opacity 0.3s;}
+.wheel-glow.active{opacity:1;}
+canvas#wc{border-radius:50%;display:block;}
+.pointer-wrap{position:absolute;right:-14px;top:50%;transform:translateY(-50%);z-index:10;}
+.pointer-wrap svg{filter:drop-shadow(0 0 6px var(--gold));}
+.spin-area{display:flex;flex-direction:column;align-items:center;gap:10px;width:100%;}
+.spin-btn{width:200px;padding:13px 0;font-family:'Inter',sans-serif;font-size:14px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;background:var(--gold);color:var(--navy);border:none;border-radius:var(--r2);cursor:pointer;transition:transform 0.15s,box-shadow 0.15s;box-shadow:0 0 0 0 var(--gold-glow);}
+.spin-btn:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 4px 20px var(--gold-glow);}
+.spin-btn:active:not(:disabled){transform:scale(0.97);}
+.spin-btn:disabled{opacity:0.35;cursor:not-allowed;}
+.ticket-count{font-size:11px;color:var(--cream2);letter-spacing:0.05em;}
+.panel{background:var(--navy2);display:flex;flex-direction:column;border-left:0.5px solid rgba(255,255,255,0.07);}
+.panel-top{padding:20px 20px 0;}
+.panel-title{font-family:'Playfair Display',serif;font-size:18px;color:var(--cream);margin-bottom:16px;}
+.field-group{display:flex;gap:8px;margin-bottom:8px;}
+.field-group input{background:var(--navy3);border:0.5px solid rgba(255,255,255,0.1);border-radius:var(--r2);padding:9px 12px;font-family:'Inter',sans-serif;font-size:13px;color:var(--cream);outline:none;transition:border-color 0.15s;}
+.field-group input:focus{border-color:var(--gold);}
+.field-group input::placeholder{color:rgba(176,172,166,0.4);}
+.field-group input[type=number]{width:72px;flex:none;}
+.field-group input[type=text]{flex:1;}
+.add-btn{padding:9px 14px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--r2);font-family:'Inter',sans-serif;font-size:12px;font-weight:600;letter-spacing:0.06em;cursor:pointer;text-transform:uppercase;white-space:nowrap;transition:opacity 0.15s;}
+.add-btn:hover{opacity:0.88;}
+.divider{height:0.5px;background:rgba(255,255,255,0.07);margin:16px 20px;}
+.section-label{font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--cream2);margin-bottom:10px;padding:0 20px;}
+.entries-scroll{flex:1;overflow-y:auto;padding:0 20px 12px;min-height:80px;max-height:160px;}
+.entries-scroll::-webkit-scrollbar{width:3px;}
+.entries-scroll::-webkit-scrollbar-track{background:transparent;}
+.entries-scroll::-webkit-scrollbar-thumb{background:var(--navy3);border-radius:2px;}
+.entry-row{display:flex;justify-content:space-between;align-items:center;padding:7px 10px;background:var(--navy3);border-radius:6px;margin-bottom:5px;border:0.5px solid rgba(255,255,255,0.05);}
+.entry-dot{width:8px;height:8px;border-radius:50%;margin-right:8px;flex-shrink:0;}
+.entry-name{font-size:13px;color:var(--cream);font-weight:500;}
+.entry-badges{display:flex;align-items:center;gap:8px;}
+.entry-tag{font-size:10px;color:var(--gold);background:rgba(245,200,66,0.1);border:0.5px solid rgba(245,200,66,0.2);padding:2px 7px;border-radius:20px;font-weight:500;}
+.rm-btn{background:none;border:none;cursor:pointer;color:rgba(176,172,166,0.4);font-size:14px;line-height:1;padding:2px 4px;border-radius:4px;transition:color 0.15s,background 0.15s;}
+.rm-btn:hover{color:var(--coral);background:rgba(232,98,74,0.12);}
+.empty-msg{font-size:12px;color:rgba(176,172,166,0.4);text-align:center;padding:20px 0;}
+.winner-panel{margin:0 20px 16px;padding:14px 16px;background:linear-gradient(135deg,rgba(245,200,66,0.12),rgba(245,200,66,0.04));border:0.5px solid rgba(245,200,66,0.3);border-radius:var(--r);display:none;}
+.winner-eyebrow{font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold);margin-bottom:4px;}
+.winner-name-display{font-family:'Playfair Display',serif;font-size:22px;color:var(--cream);line-height:1.2;margin-bottom:12px;}
+.winner-actions{display:flex;gap:8px;}
+.w-btn{flex:1;padding:8px 0;font-family:'Inter',sans-serif;font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;border-radius:6px;cursor:pointer;transition:opacity 0.15s;}
+.w-btn:hover{opacity:0.8;}
+.w-btn-keep{background:transparent;border:0.5px solid rgba(255,255,255,0.15);color:var(--cream2);}
+.w-btn-remove{background:rgba(232,98,74,0.15);border:0.5px solid rgba(232,98,74,0.3);color:var(--coral);}
+.log-section{padding:0 20px 20px;flex:1;display:flex;flex-direction:column;min-height:0;}
+.log-scroll{overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:5px;}
+.log-scroll::-webkit-scrollbar{width:3px;}
+.log-scroll::-webkit-scrollbar-track{background:transparent;}
+.log-scroll::-webkit-scrollbar-thumb{background:var(--navy3);border-radius:2px;}
+.log-row{display:flex;align-items:center;gap:10px;padding:7px 10px;background:rgba(255,255,255,0.03);border-radius:6px;border:0.5px solid rgba(255,255,255,0.04);}
+.log-num{font-size:10px;color:var(--gold);font-weight:600;width:16px;text-align:center;flex-shrink:0;}
+.log-name{font-size:12px;color:var(--cream);flex:1;}
+.log-time{font-size:10px;color:var(--cream2);}
+@keyframes winnerpop{0%{transform:scale(0.94);opacity:0}60%{transform:scale(1.02)}100%{transform:scale(1);opacity:1}}
+.winner-panel.show{display:block;animation:winnerpop 0.35s ease forwards;}
+@keyframes glowpulse{0%,100%{opacity:0.6}50%{opacity:1}}
+.wheel-glow.spinning{animation:glowpulse 0.6s ease-in-out infinite;}
 </style>
 
-<div class="container">
-  <div class="left-panel">
-    <div class="card">
-      <div class="section-title">Add participant</div>
-      <div class="input-row">
-        <input type="text" id="nameInput" placeholder="Name" />
-        <input type="number" id="entriesInput" placeholder="Entries" min="1" value="1" style="width:80px;flex:none;" />
-        <button class="spin-btn" style="width:auto;padding:8px 14px;" onclick="addEntry()">Add</button>
+<div class="app">
+  <div class="stage">
+    <div class="wordmark">Raffle Wheel</div>
+    <div class="wheel-container">
+      <div class="wheel-glow" id="glowEl"></div>
+      <canvas id="wc" width="290" height="290"></canvas>
+      <div class="pointer-wrap">
+        <svg width="22" height="32" viewBox="0 0 22 32">
+          <polygon points="22,0 22,32 0,16" fill="#F5C842"/>
+        </svg>
       </div>
-      <div class="total-tickets" id="totalTickets"></div>
     </div>
-
-    <div class="card" style="flex:1; display:flex; flex-direction:column;">
-      <div class="section-title">Wheel</div>
-      <div class="wheel-wrap" style="position:relative; margin-bottom:12px;">
-        <canvas id="wheel" width="280" height="280"></canvas>
-        <div class="pointer"></div>
-      </div>
-      <div id="winnerBanner" class="winner-banner">
-        <div class="winner-label">🎉 Winner</div>
-        <div class="winner-name" id="winnerName"></div>
-        <button class="remove-winner-btn" onclick="removeWinner()">Remove from wheel</button>
-      </div>
-      <button class="spin-btn" id="spinBtn" onclick="spin()" style="margin-top:12px;">Spin the wheel</button>
+    <div class="spin-area">
+      <button class="spin-btn" id="spinBtn" onclick="doSpin()">Spin</button>
+      <div class="ticket-count" id="ticketCount"></div>
     </div>
   </div>
 
-  <div class="right-panel">
-    <div class="card" style="flex:none;">
-      <div class="section-title">Participants</div>
-      <div class="entries-list" id="entriesList">
-        <div class="empty-state">No participants yet</div>
+  <div class="panel">
+    <div class="panel-top">
+      <div class="panel-title">Participants</div>
+      <div class="field-group">
+        <input type="text" id="nameIn" placeholder="Full name" />
+        <input type="number" id="entriesIn" placeholder="#" min="1" value="1" />
+        <button class="add-btn" onclick="addEntry()">Add</button>
       </div>
     </div>
 
-    <div class="card" style="flex:1; display:flex; flex-direction:column;">
-      <div class="section-title">Winner log</div>
-      <div class="log-list" id="logList">
-        <div class="empty-state">No winners yet</div>
+    <div class="divider"></div>
+    <div class="section-label">In the draw</div>
+    <div class="entries-scroll" id="entryList"><div class="empty-msg">No participants yet</div></div>
+
+    <div class="winner-panel" id="winnerPanel">
+      <div class="winner-eyebrow">🏆 Winner</div>
+      <div class="winner-name-display" id="winnerDisplay"></div>
+      <div class="winner-actions">
+        <button class="w-btn w-btn-keep" onclick="dismissWinner()">Keep in draw</button>
+        <button class="w-btn w-btn-remove" onclick="removeWinner()">Remove entry</button>
       </div>
+    </div>
+
+    <div class="divider" style="margin-top:0;"></div>
+    <div class="section-label">Winner log</div>
+    <div class="log-section">
+      <div class="log-scroll" id="logList"><div class="empty-msg">No draws yet</div></div>
     </div>
   </div>
 </div>
 
 <script>
-const COLORS = [
-  ['#534AB7','#FFFFFF'],['#0F6E56','#FFFFFF'],['#993C1D','#FFFFFF'],
-  ['#185FA5','#FFFFFF'],['#3B6D11','#FFFFFF'],['#993556','#FFFFFF'],
-  ['#BA7517','#000000'],['#5F5E5A','#FFFFFF'],['#A32D2D','#FFFFFF'],
-  ['#0C447C','#FFFFFF'],['#085041','#FFFFFF'],['#712B13','#FFFFFF'],
+const SLICE_COLORS = [
+  '#534AB7','#0F6E56','#C05621','#185FA5','#7C3D7C','#0E6B6B',
+  '#8B5E0A','#5F5E5A','#992233','#1A5276','#1E8449','#784212',
+  '#6C3483','#0B5345','#7B241C','#154360','#145A32','#5D4037',
 ];
 
-let participants = [];
-let wheelSlots = [];
-let winnerIdx = null;
-let spinning = false;
-let currentAngle = 0;
-let logEntries = [];
-let logCount = 0;
+let participants=[], wheelSlots=[], currentAngle=0, spinning=false, winnerIdx=null, logEntries=[], logCount=0;
+const canvas=document.getElementById('wc'), ctx=canvas.getContext('2d');
+const glowEl=document.getElementById('glowEl');
 
-const canvas = document.getElementById('wheel');
-const ctx = canvas.getContext('2d');
-
-function buildSlots() {
-  wheelSlots = [];
-  participants.forEach((p, pi) => {
-    for (let i = 0; i < p.entries; i++) {
-      wheelSlots.push({ name: p.name, colorIdx: pi % COLORS.length });
-    }
+function buildSlots(){
+  wheelSlots=[];
+  participants.forEach((p,pi)=>{
+    for(let i=0;i<p.entries;i++) wheelSlots.push({name:p.name,ci:pi%SLICE_COLORS.length});
   });
 }
 
-function drawWheel(angle) {
-  ctx.clearRect(0, 0, 280, 280);
-  const cx = 140, cy = 140, r = 130;
-  if (wheelSlots.length === 0) {
-    ctx.beginPath();
-    ctx.arc(cx, cy, r, 0, Math.PI * 2);
-    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--color-background-secondary') || '#f0f0f0';
-    ctx.fill();
-    ctx.strokeStyle = '#ccc';
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    ctx.fillStyle = '#888';
-    ctx.font = '14px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('Add participants', cx, cy);
+function drawWheel(angle){
+  ctx.clearRect(0,0,290,290);
+  const cx=145,cy=145,r=138;
+  if(!wheelSlots.length){
+    ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2);
+    ctx.fillStyle='#1E2235'; ctx.fill();
+    ctx.strokeStyle='rgba(245,200,66,0.15)'; ctx.lineWidth=1.5; ctx.stroke();
+    ctx.fillStyle='rgba(176,172,166,0.35)'; ctx.font='13px Inter,sans-serif'; ctx.textAlign='center';
+    ctx.fillText('Add participants to begin',cx,cy-6);
     return;
   }
-  const sliceAngle = (Math.PI * 2) / wheelSlots.length;
-  wheelSlots.forEach((slot, i) => {
-    const start = angle + i * sliceAngle;
-    const end = start + sliceAngle;
-    const [bg, fg] = COLORS[slot.colorIdx];
-    ctx.beginPath();
-    ctx.moveTo(cx, cy);
-    ctx.arc(cx, cy, r, start, end);
-    ctx.closePath();
-    ctx.fillStyle = bg;
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(255,255,255,0.3)';
-    ctx.lineWidth = 1;
-    ctx.stroke();
-
-    ctx.save();
-    ctx.translate(cx, cy);
-    ctx.rotate(start + sliceAngle / 2);
-    ctx.textAlign = 'right';
-    ctx.fillStyle = fg;
-    const fs = wheelSlots.length > 20 ? 9 : wheelSlots.length > 10 ? 11 : 13;
-    ctx.font = `${fs}px sans-serif`;
-    const maxW = r - 20;
-    let label = slot.name;
-    ctx.font = `500 ${fs}px sans-serif`;
-    while (ctx.measureText(label).width > maxW && label.length > 3) label = label.slice(0, -1);
-    if (label !== slot.name) label = label.slice(0, -1) + '…';
-    ctx.fillText(label, r - 8, fs / 3);
+  const sa=(Math.PI*2)/wheelSlots.length;
+  wheelSlots.forEach((s,i)=>{
+    const a0=angle+i*sa, a1=a0+sa;
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,r,a0,a1); ctx.closePath();
+    ctx.fillStyle=SLICE_COLORS[s.ci]; ctx.fill();
+    ctx.strokeStyle='rgba(13,15,26,0.6)'; ctx.lineWidth=1.2; ctx.stroke();
+    ctx.save(); ctx.translate(cx,cy); ctx.rotate(a0+sa/2);
+    ctx.textAlign='right';
+    const fs=wheelSlots.length>22?9:wheelSlots.length>12?11:13;
+    ctx.font=`500 ${fs}px Inter,sans-serif`;
+    ctx.fillStyle='rgba(255,255,255,0.92)';
+    let lbl=s.name;
+    const maxW=r-22;
+    while(ctx.measureText(lbl).width>maxW&&lbl.length>2) lbl=lbl.slice(0,-1);
+    if(lbl!==s.name) lbl=lbl.slice(0,-1)+'…';
+    ctx.fillText(lbl,r-10,fs/3);
     ctx.restore();
   });
-
-  ctx.beginPath();
-  ctx.arc(cx, cy, 18, 0, Math.PI * 2);
-  ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--color-background-primary') || '#fff';
-  ctx.fill();
-  ctx.strokeStyle = '#ccc';
-  ctx.lineWidth = 2;
-  ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx,cy,22,0,Math.PI*2);
+  ctx.fillStyle='#0D0F1A'; ctx.fill();
+  ctx.strokeStyle='rgba(245,200,66,0.4)'; ctx.lineWidth=1.5; ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx,cy,7,0,Math.PI*2);
+  ctx.fillStyle='#F5C842'; ctx.fill();
 }
 
-function addEntry() {
-  const name = document.getElementById('nameInput').value.trim();
-  const entries = parseInt(document.getElementById('entriesInput').value) || 1;
-  if (!name) { document.getElementById('nameInput').focus(); return; }
-  const existing = participants.find(p => p.name.toLowerCase() === name.toLowerCase());
-  if (existing) {
-    existing.entries += entries;
-  } else {
-    participants.push({ name, entries });
-  }
-  document.getElementById('nameInput').value = '';
-  document.getElementById('entriesInput').value = '1';
-  document.getElementById('nameInput').focus();
-  buildSlots();
-  drawWheel(currentAngle);
-  renderList();
+function addEntry(){
+  const name=document.getElementById('nameIn').value.trim();
+  const entries=parseInt(document.getElementById('entriesIn').value)||1;
+  if(!name){document.getElementById('nameIn').focus();return;}
+  const ex=participants.find(p=>p.name.toLowerCase()===name.toLowerCase());
+  if(ex) ex.entries+=entries;
+  else participants.push({name,entries});
+  document.getElementById('nameIn').value='';
+  document.getElementById('entriesIn').value='1';
+  document.getElementById('nameIn').focus();
+  buildSlots(); drawWheel(currentAngle); renderEntries(); updateCount();
 }
 
-function removeParticipant(idx) {
-  participants.splice(idx, 1);
-  buildSlots();
-  drawWheel(currentAngle);
-  renderList();
+function removeParticipant(i){
+  participants.splice(i,1);
+  buildSlots(); drawWheel(currentAngle); renderEntries(); updateCount();
 }
 
-function renderList() {
-  const el = document.getElementById('entriesList');
-  const total = participants.reduce((s, p) => s + p.entries, 0);
-  document.getElementById('totalTickets').textContent = participants.length ? `${total} total ticket${total !== 1 ? 's' : ''} · ${participants.length} participant${participants.length !== 1 ? 's' : ''}` : '';
-  if (!participants.length) { el.innerHTML = '<div class="empty-state">No participants yet</div>'; return; }
-  el.innerHTML = participants.map((p, i) => `
-    <div class="entry-item">
-      <span><span class="entry-name">${p.name}</span></span>
-      <span style="display:flex;align-items:center;gap:8px;">
-        <span class="entry-count">${p.entries} entr${p.entries !== 1 ? 'ies' : 'y'}</span>
-        <button class="entry-remove" onclick="removeParticipant(${i})" title="Remove">✕</button>
-      </span>
+function renderEntries(){
+  const el=document.getElementById('entryList');
+  if(!participants.length){el.innerHTML='<div class="empty-msg">No participants yet</div>';return;}
+  el.innerHTML=participants.map((p,i)=>`
+    <div class="entry-row">
+      <div style="display:flex;align-items:center;min-width:0;">
+        <div class="entry-dot" style="background:${SLICE_COLORS[i%SLICE_COLORS.length]};"></div>
+        <span class="entry-name" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${p.name}</span>
+      </div>
+      <div class="entry-badges">
+        <span class="entry-tag">${p.entries}×</span>
+        <button class="rm-btn" onclick="removeParticipant(${i})" title="Remove">✕</button>
+      </div>
     </div>`).join('');
 }
 
-function spin() {
-  if (spinning || wheelSlots.length === 0) return;
-  spinning = true;
-  winnerIdx = null;
-  document.getElementById('winnerBanner').style.display = 'none';
-  document.getElementById('spinBtn').disabled = true;
+function updateCount(){
+  const total=participants.reduce((s,p)=>s+p.entries,0);
+  document.getElementById('ticketCount').textContent=total?`${total} ticket${total!==1?'s':''} · ${participants.length} participant${participants.length!==1?'s':'`'}`:' ';
+}
 
-  const totalRotation = (Math.PI * 2) * (5 + Math.random() * 5);
-  const duration = 4000 + Math.random() * 1500;
-  const start = performance.now();
-  const startAngle = currentAngle;
-
-  function ease(t) { return 1 - Math.pow(1 - t, 4); }
-
-  function frame(now) {
-    const elapsed = now - start;
-    const t = Math.min(elapsed / duration, 1);
-    currentAngle = startAngle + totalRotation * ease(t);
+function doSpin(){
+  if(spinning||!wheelSlots.length) return;
+  spinning=true; winnerIdx=null;
+  document.getElementById('winnerPanel').className='winner-panel';
+  document.getElementById('spinBtn').disabled=true;
+  glowEl.className='wheel-glow active spinning';
+  const rot=(Math.PI*2)*(6+Math.random()*6);
+  const dur=4500+Math.random()*1500;
+  const t0=performance.now(), a0=currentAngle;
+  function ease(t){return 1-Math.pow(1-t,4);}
+  function frame(now){
+    const t=Math.min((now-t0)/dur,1);
+    currentAngle=a0+rot*ease(t);
     drawWheel(currentAngle);
-    if (t < 1) { requestAnimationFrame(frame); return; }
-    spinning = false;
-    document.getElementById('spinBtn').disabled = false;
-    const sliceAngle = (Math.PI * 2) / wheelSlots.length;
-    const pointer = Math.PI;
-    let norm = ((pointer - currentAngle) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2);
-    winnerIdx = Math.floor(norm / sliceAngle) % wheelSlots.length;
-    const winner = wheelSlots[winnerIdx];
-    showWinner(winner.name);
+    if(t<1){requestAnimationFrame(frame);return;}
+    spinning=false;
+    glowEl.className='wheel-glow active';
+    document.getElementById('spinBtn').disabled=false;
+    const sa=(Math.PI*2)/wheelSlots.length;
+    const ptr=Math.PI;
+    let norm=((ptr-currentAngle)%(Math.PI*2)+Math.PI*2)%(Math.PI*2);
+    winnerIdx=Math.floor(norm/sa)%wheelSlots.length;
+    showWinner(wheelSlots[winnerIdx].name);
+    setTimeout(()=>{glowEl.className='wheel-glow';},2000);
   }
   requestAnimationFrame(frame);
 }
 
-function showWinner(name) {
-  document.getElementById('winnerName').textContent = name;
-  document.getElementById('winnerBanner').style.display = 'block';
+function showWinner(name){
+  document.getElementById('winnerDisplay').textContent=name;
+  const p=document.getElementById('winnerPanel');
+  p.className='winner-panel'; void p.offsetWidth;
+  p.className='winner-panel show';
   logCount++;
-  const now = new Date();
-  const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  logEntries.unshift({ num: logCount, name, time });
+  const now=new Date();
+  const time=now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  logEntries.unshift({num:logCount,name,time});
   renderLog();
 }
 
-function removeWinner() {
-  if (winnerIdx === null) return;
-  const winnerName = wheelSlots[winnerIdx].name;
-  const p = participants.find(p => p.name === winnerName);
-  if (p) {
-    p.entries--;
-    if (p.entries <= 0) participants = participants.filter(x => x !== p);
-  }
-  buildSlots();
-  drawWheel(currentAngle);
-  renderList();
-  document.getElementById('winnerBanner').style.display = 'none';
-  winnerIdx = null;
+function dismissWinner(){
+  document.getElementById('winnerPanel').className='winner-panel';
+  winnerIdx=null;
 }
 
-function renderLog() {
-  const el = document.getElementById('logList');
-  if (!logEntries.length) { el.innerHTML = '<div class="empty-state">No winners yet</div>'; return; }
-  el.innerHTML = logEntries.map(e => `
-    <div class="log-item">
-      <span><span class="log-num">${e.num}</span><span class="log-winner">${e.name}</span></span>
-      <span class="log-meta">${e.time}</span>
+function removeWinner(){
+  if(winnerIdx===null) return;
+  const wname=wheelSlots[winnerIdx].name;
+  const p=participants.find(p=>p.name===wname);
+  if(p){p.entries--;if(p.entries<=0)participants=participants.filter(x=>x!==p);}
+  buildSlots(); drawWheel(currentAngle); renderEntries(); updateCount();
+  document.getElementById('winnerPanel').className='winner-panel';
+  winnerIdx=null;
+}
+
+function renderLog(){
+  const el=document.getElementById('logList');
+  if(!logEntries.length){el.innerHTML='<div class="empty-msg">No draws yet</div>';return;}
+  el.innerHTML=logEntries.map(e=>`
+    <div class="log-row">
+      <span class="log-num">${e.num}</span>
+      <span class="log-name">${e.name}</span>
+      <span class="log-time">${e.time}</span>
     </div>`).join('');
 }
 
-document.getElementById('nameInput').addEventListener('keydown', e => { if (e.key === 'Enter') addEntry(); });
-
-drawWheel(currentAngle);
-renderList();
-renderLog();
+document.getElementById('nameIn').addEventListener('keydown',e=>{if(e.key==='Enter')addEntry();});
+drawWheel(currentAngle); updateCount();
 </script>
