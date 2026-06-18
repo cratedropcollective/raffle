@@ -1,0 +1,280 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); }
+.container { display: grid; grid-template-columns: 1fr 340px; gap: 20px; padding: 16px; min-height: 600px; }
+.left-panel { display: flex; flex-direction: column; gap: 16px; }
+.right-panel { display: flex; flex-direction: column; gap: 16px; }
+.card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 16px; }
+.section-title { font-size: 13px; font-weight: 500; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px; }
+.input-row { display: flex; gap: 8px; }
+.input-row input { flex: 1; }
+.input-row input[type="number"] { width: 70px; flex: none; }
+.wheel-wrap { display: flex; justify-content: center; align-items: center; position: relative; }
+canvas#wheel { border-radius: 50%; }
+.spin-btn { display: block; width: 100%; padding: 10px; font-size: 15px; font-weight: 500; background: var(--color-background-primary); border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); cursor: pointer; color: var(--color-text-primary); transition: background 0.15s; }
+.spin-btn:hover { background: var(--color-background-secondary); }
+.spin-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.entries-list { max-height: 180px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+.entry-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; background: var(--color-background-secondary); border-radius: var(--border-radius-md); font-size: 13px; }
+.entry-name { font-weight: 500; color: var(--color-text-primary); }
+.entry-count { color: var(--color-text-secondary); font-size: 12px; }
+.entry-remove { background: none; border: none; cursor: pointer; color: var(--color-text-secondary); padding: 2px 4px; border-radius: 4px; font-size: 14px; }
+.entry-remove:hover { color: var(--color-text-danger); background: var(--color-background-danger); }
+.winner-banner { display: none; padding: 14px; background: var(--color-background-success); border: 0.5px solid var(--color-border-success); border-radius: var(--border-radius-md); text-align: center; }
+.winner-name { font-size: 18px; font-weight: 500; color: var(--color-text-success); }
+.winner-label { font-size: 12px; color: var(--color-text-success); margin-bottom: 4px; }
+.remove-winner-btn { margin-top: 10px; font-size: 12px; padding: 6px 12px; background: var(--color-background-primary); border: 0.5px solid var(--color-border-success); border-radius: var(--border-radius-md); cursor: pointer; color: var(--color-text-success); }
+.remove-winner-btn:hover { background: var(--color-background-secondary); }
+.log-list { max-height: 220px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+.log-item { display: flex; justify-content: space-between; align-items: flex-start; padding: 8px 10px; background: var(--color-background-secondary); border-radius: var(--border-radius-md); font-size: 12px; }
+.log-winner { font-weight: 500; color: var(--color-text-primary); }
+.log-meta { color: var(--color-text-secondary); font-size: 11px; text-align: right; }
+.log-num { display: inline-block; width: 18px; height: 18px; border-radius: 50%; background: var(--color-background-info); color: var(--color-text-info); font-size: 10px; font-weight: 500; text-align: center; line-height: 18px; margin-right: 6px; }
+.empty-state { color: var(--color-text-secondary); font-size: 13px; text-align: center; padding: 16px 0; }
+.pointer { position: absolute; right: -8px; top: 50%; transform: translateY(-50%); width: 0; height: 0; border-top: 10px solid transparent; border-bottom: 10px solid transparent; border-right: 20px solid var(--color-text-primary); z-index: 10; }
+.total-tickets { font-size: 12px; color: var(--color-text-secondary); margin-top: 4px; }
+</style>
+
+<div class="container">
+  <div class="left-panel">
+    <div class="card">
+      <div class="section-title">Add participant</div>
+      <div class="input-row">
+        <input type="text" id="nameInput" placeholder="Name" />
+        <input type="number" id="entriesInput" placeholder="Entries" min="1" value="1" style="width:80px;flex:none;" />
+        <button class="spin-btn" style="width:auto;padding:8px 14px;" onclick="addEntry()">Add</button>
+      </div>
+      <div class="total-tickets" id="totalTickets"></div>
+    </div>
+
+    <div class="card" style="flex:1; display:flex; flex-direction:column;">
+      <div class="section-title">Wheel</div>
+      <div class="wheel-wrap" style="position:relative; margin-bottom:12px;">
+        <canvas id="wheel" width="280" height="280"></canvas>
+        <div class="pointer"></div>
+      </div>
+      <div id="winnerBanner" class="winner-banner">
+        <div class="winner-label">🎉 Winner</div>
+        <div class="winner-name" id="winnerName"></div>
+        <button class="remove-winner-btn" onclick="removeWinner()">Remove from wheel</button>
+      </div>
+      <button class="spin-btn" id="spinBtn" onclick="spin()" style="margin-top:12px;">Spin the wheel</button>
+    </div>
+  </div>
+
+  <div class="right-panel">
+    <div class="card" style="flex:none;">
+      <div class="section-title">Participants</div>
+      <div class="entries-list" id="entriesList">
+        <div class="empty-state">No participants yet</div>
+      </div>
+    </div>
+
+    <div class="card" style="flex:1; display:flex; flex-direction:column;">
+      <div class="section-title">Winner log</div>
+      <div class="log-list" id="logList">
+        <div class="empty-state">No winners yet</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const COLORS = [
+  ['#534AB7','#FFFFFF'],['#0F6E56','#FFFFFF'],['#993C1D','#FFFFFF'],
+  ['#185FA5','#FFFFFF'],['#3B6D11','#FFFFFF'],['#993556','#FFFFFF'],
+  ['#BA7517','#000000'],['#5F5E5A','#FFFFFF'],['#A32D2D','#FFFFFF'],
+  ['#0C447C','#FFFFFF'],['#085041','#FFFFFF'],['#712B13','#FFFFFF'],
+];
+
+let participants = [];
+let wheelSlots = [];
+let winnerIdx = null;
+let spinning = false;
+let currentAngle = 0;
+let logEntries = [];
+let logCount = 0;
+
+const canvas = document.getElementById('wheel');
+const ctx = canvas.getContext('2d');
+
+function buildSlots() {
+  wheelSlots = [];
+  participants.forEach((p, pi) => {
+    for (let i = 0; i < p.entries; i++) {
+      wheelSlots.push({ name: p.name, colorIdx: pi % COLORS.length });
+    }
+  });
+}
+
+function drawWheel(angle) {
+  ctx.clearRect(0, 0, 280, 280);
+  const cx = 140, cy = 140, r = 130;
+  if (wheelSlots.length === 0) {
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--color-background-secondary') || '#f0f0f0';
+    ctx.fill();
+    ctx.strokeStyle = '#ccc';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.fillStyle = '#888';
+    ctx.font = '14px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Add participants', cx, cy);
+    return;
+  }
+  const sliceAngle = (Math.PI * 2) / wheelSlots.length;
+  wheelSlots.forEach((slot, i) => {
+    const start = angle + i * sliceAngle;
+    const end = start + sliceAngle;
+    const [bg, fg] = COLORS[slot.colorIdx];
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, r, start, end);
+    ctx.closePath();
+    ctx.fillStyle = bg;
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(start + sliceAngle / 2);
+    ctx.textAlign = 'right';
+    ctx.fillStyle = fg;
+    const fs = wheelSlots.length > 20 ? 9 : wheelSlots.length > 10 ? 11 : 13;
+    ctx.font = `${fs}px sans-serif`;
+    const maxW = r - 20;
+    let label = slot.name;
+    ctx.font = `500 ${fs}px sans-serif`;
+    while (ctx.measureText(label).width > maxW && label.length > 3) label = label.slice(0, -1);
+    if (label !== slot.name) label = label.slice(0, -1) + '…';
+    ctx.fillText(label, r - 8, fs / 3);
+    ctx.restore();
+  });
+
+  ctx.beginPath();
+  ctx.arc(cx, cy, 18, 0, Math.PI * 2);
+  ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--color-background-primary') || '#fff';
+  ctx.fill();
+  ctx.strokeStyle = '#ccc';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+}
+
+function addEntry() {
+  const name = document.getElementById('nameInput').value.trim();
+  const entries = parseInt(document.getElementById('entriesInput').value) || 1;
+  if (!name) { document.getElementById('nameInput').focus(); return; }
+  const existing = participants.find(p => p.name.toLowerCase() === name.toLowerCase());
+  if (existing) {
+    existing.entries += entries;
+  } else {
+    participants.push({ name, entries });
+  }
+  document.getElementById('nameInput').value = '';
+  document.getElementById('entriesInput').value = '1';
+  document.getElementById('nameInput').focus();
+  buildSlots();
+  drawWheel(currentAngle);
+  renderList();
+}
+
+function removeParticipant(idx) {
+  participants.splice(idx, 1);
+  buildSlots();
+  drawWheel(currentAngle);
+  renderList();
+}
+
+function renderList() {
+  const el = document.getElementById('entriesList');
+  const total = participants.reduce((s, p) => s + p.entries, 0);
+  document.getElementById('totalTickets').textContent = participants.length ? `${total} total ticket${total !== 1 ? 's' : ''} · ${participants.length} participant${participants.length !== 1 ? 's' : ''}` : '';
+  if (!participants.length) { el.innerHTML = '<div class="empty-state">No participants yet</div>'; return; }
+  el.innerHTML = participants.map((p, i) => `
+    <div class="entry-item">
+      <span><span class="entry-name">${p.name}</span></span>
+      <span style="display:flex;align-items:center;gap:8px;">
+        <span class="entry-count">${p.entries} entr${p.entries !== 1 ? 'ies' : 'y'}</span>
+        <button class="entry-remove" onclick="removeParticipant(${i})" title="Remove">✕</button>
+      </span>
+    </div>`).join('');
+}
+
+function spin() {
+  if (spinning || wheelSlots.length === 0) return;
+  spinning = true;
+  winnerIdx = null;
+  document.getElementById('winnerBanner').style.display = 'none';
+  document.getElementById('spinBtn').disabled = true;
+
+  const totalRotation = (Math.PI * 2) * (5 + Math.random() * 5);
+  const duration = 4000 + Math.random() * 1500;
+  const start = performance.now();
+  const startAngle = currentAngle;
+
+  function ease(t) { return 1 - Math.pow(1 - t, 4); }
+
+  function frame(now) {
+    const elapsed = now - start;
+    const t = Math.min(elapsed / duration, 1);
+    currentAngle = startAngle + totalRotation * ease(t);
+    drawWheel(currentAngle);
+    if (t < 1) { requestAnimationFrame(frame); return; }
+    spinning = false;
+    document.getElementById('spinBtn').disabled = false;
+    const sliceAngle = (Math.PI * 2) / wheelSlots.length;
+    const pointer = Math.PI;
+    let norm = ((pointer - currentAngle) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2);
+    winnerIdx = Math.floor(norm / sliceAngle) % wheelSlots.length;
+    const winner = wheelSlots[winnerIdx];
+    showWinner(winner.name);
+  }
+  requestAnimationFrame(frame);
+}
+
+function showWinner(name) {
+  document.getElementById('winnerName').textContent = name;
+  document.getElementById('winnerBanner').style.display = 'block';
+  logCount++;
+  const now = new Date();
+  const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  logEntries.unshift({ num: logCount, name, time });
+  renderLog();
+}
+
+function removeWinner() {
+  if (winnerIdx === null) return;
+  const winnerName = wheelSlots[winnerIdx].name;
+  const p = participants.find(p => p.name === winnerName);
+  if (p) {
+    p.entries--;
+    if (p.entries <= 0) participants = participants.filter(x => x !== p);
+  }
+  buildSlots();
+  drawWheel(currentAngle);
+  renderList();
+  document.getElementById('winnerBanner').style.display = 'none';
+  winnerIdx = null;
+}
+
+function renderLog() {
+  const el = document.getElementById('logList');
+  if (!logEntries.length) { el.innerHTML = '<div class="empty-state">No winners yet</div>'; return; }
+  el.innerHTML = logEntries.map(e => `
+    <div class="log-item">
+      <span><span class="log-num">${e.num}</span><span class="log-winner">${e.name}</span></span>
+      <span class="log-meta">${e.time}</span>
+    </div>`).join('');
+}
+
+document.getElementById('nameInput').addEventListener('keydown', e => { if (e.key === 'Enter') addEntry(); });
+
+drawWheel(currentAngle);
+renderList();
+renderLog();
+</script>
